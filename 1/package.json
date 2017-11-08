@@ -1,0 +1,13 @@
+{
+  "name": "ai_course_1",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "compile": "node node_modules/babel-cli/bin/babel.js src --out-dir dist",
+    "watch": "node node_modules/babel-cli/bin/babel.js src --watch --out-dir dist"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0"
+  }
+}

@@ -14,25 +14,9 @@
         </style>
     </head>
     <body>
-        <script>
-            const WIDTH = 16;
-            const HEIGHT = 13;
-        </script>
-        <div id="board">
-            <script>
-                document.write("<table>")
-                for(let i=0; i<HEIGHT; i++){
-                    document.write("<tr>")
-                    for(let j=0; j<WIDTH; j++){
-                        document.write(`<td class="b-pos empty" id="b_${i}_${j}"></td>`)
-                    }
-                    document.write("</tr>")
-                }
-                document.write("</table>")
-            </script>
-        </div>
-        <button id="next_btn">NEXT</button>
-        <script src="./lib.js"></script>
-        <script src="./main.js"></script>
+        <div id="board"></div>
+        <button id="ctrl_btn">START</button>
+        <script src="dist/lib.js"></script>
+        <script src="dist/main.js"></script>
     </body>
 </html>
