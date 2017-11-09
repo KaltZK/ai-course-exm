@@ -4,10 +4,14 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "compile": "node node_modules/babel-cli/bin/babel.js src --out-dir dist",
-    "watch": "node node_modules/babel-cli/bin/babel.js src --watch --out-dir dist"
+    "_compile": "node node_modules/babel-cli/bin/babel.js src --out-dir dist",
+    "_watch": "node node_modules/babel-cli/bin/babel.js src --watch --out-dir dist",
+    "compile": "node node_modules/webpack/bin/webpack.js"
   },
   "dependencies": {
-    "babel-cli": "^6.26.0"
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^3.8.1"
   }
 }

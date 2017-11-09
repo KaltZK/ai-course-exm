@@ -1,22 +1,73 @@
 <html>
     <head>
+        <meta http-equiv=Content-Type content="text/html; charset=utf-8">
         <style>
             .b-pos{
                 width: 20px;
                 height: 20px;
                 /* border-style: solid; */
-                background-color: pink;
             }
-            .empty{ background-color: white; }
-            .agent{ background-color: plum; }
-            .solid{ background-color: black; }
-            .edge { background-color: gray; }
+            
+            .empty{ background-color: white; color: black; }
+            .agent{ background-color: plum; color: white;}
+            .edge { background-color: black; color: white;}
+            .solid{ background-color: gray; color: black; }
+            
+            .type-option{
+                min-width: 2rem;
+                min-height: 1rem;
+                margin-left: 0.1rem; 
+                margin-right: 0.1rem;
+            }
+            .type-option.empty::before{ content: 'Empty'; border: black solid 1px;  }
+            .type-option.agent::before{ content: 'Agent';  }
+            .type-option.solid::before{ content: 'Solid';  }
+            .type-option.edge::before{  content: 'Edge'; }
+
+            button, button:focus, button:active, button:hover{
+                border: black solid 1px;
+                color: black;
+                background-color: white;
+                font-size: 1.5rem;
+                outline: none;
+                margin: 0.2rem;
+            }
+            .editor{
+                border: black solid 1px;
+                color: black;
+                background-color: white;
+                font-size: 1.5rem;
+                margin: 0.5rem;
+            }
         </style>
     </head>
     <body>
-        <div id="board"></div>
-        <button id="ctrl_btn">START</button>
-        <script src="dist/lib.js"></script>
-        <script src="dist/main.js"></script>
+        <center>
+            <h2>Agent(s)</h2>
+            <div id="board"></div>
+            <button id="ctrl_btn">START</button>
+            <br/>
+            <button id="next_btn">NEXT</button>
+            <div class="editor">
+                <h3>EDITOR</h3>
+                <table>
+                    <tr>
+                        <td>已选方块类型</td>
+                        <td id="selected_type" class="type-option"></td>
+                        <td>(在地图点击以修改)</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td class="type-option agent" value="agent"></td>
+                        <td class="type-option edge"  value="edge"></td>
+                        <td class="type-option solid" value="solid"></td>
+                        <td class="type-option empty" value="empty"></td>
+                    </tr>
+                </table>
+            </div>
+        </center>
+
+        <script src="dist/index.js"></script>
     </body>
 </html>

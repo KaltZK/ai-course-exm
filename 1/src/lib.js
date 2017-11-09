@@ -1,12 +1,12 @@
 'use strict';
-const PosStat = {
+export const PosStat = {
     Empty: 0,
     Solid: 1,
     Edge:  2,
     Agent: 3,
 };
 
-const Direction = {
+export const Direction = {
     North: 0,
     N: 0,
     East:  1,
@@ -35,7 +35,7 @@ const AgentTarget= [
     Direction.S
 ];
 
-class Agent{
+export class Agent{
     constructor([x, y]){
         this.x = x
         this.y = y
@@ -63,7 +63,7 @@ class Agent{
     }
 };
 
-class Board{
+export class Board{
     constructor(w, h, agent_template = Agent){
         this.width = w
         this.height= h

@@ -1,3 +1,5 @@
+'use strict';
+import {Board, PosStat} from './lib.js'
 const data = `
 ################
 #...........####
@@ -26,6 +28,13 @@ const PSTAT2CLASS = {
     [PosStat.Agent]: 'agent'
 }
 
+const CLASS2PSTAT = {
+    'empty': PosStat.Empty,
+    'solid': PosStat.Solid,
+    'edge' : PosStat.Edge,
+    'agent': PosStat.Agent
+}
+
 const board = new Board(WIDTH, HEIGHT)
 board.on_set = ([x, y], s, ps) => {
     let p = document.getElementById(`b_${x}_${y}`)
@@ -35,8 +44,8 @@ board.on_set = ([x, y], s, ps) => {
 
 const map2stat = {
     ['.']: PosStat.Empty,
-    ['X']: PosStat.Edge,
-    ['#']: PosStat.Solid,
+    ['X']: PosStat.Solid,
+    ['#']: PosStat.Edge,
     ['O']: PosStat.Agent,
 }
 for(let i=0; i<HEIGHT; i++){
@@ -51,21 +60,31 @@ for(let i=0; i<HEIGHT; i++){
 }
 
 
-// next_btn.addEventListener('click', ()=>{
-//     board.update()
-// })
 let ivid = null
+let block_type = null
 const ctrl_btn = document.getElementById('ctrl_btn')
+const next_btn = document.getElementById('next_btn')
+
+init_select()
+set_block_type('agent')
+
+next_btn.style.display = 'block'
+next_btn.addEventListener('click', ()=>{
+    board.update()
+})
+
 ctrl_btn.addEventListener('click', evt => {
     if(ivid){
         clearInterval(ivid)
         ivid = null
         ctrl_btn.textContent = 'START'
+        next_btn.style.display = 'block'
     }else{
         ivid = setInterval(() => {
             board.update()
         }, 100)
         ctrl_btn.textContent = 'PAUSE'
+        next_btn.style.display = 'none'
     }
 })
 
@@ -79,11 +98,30 @@ function generate_board(ele, w, h){
             td.classList.add('empty')
             td.id = `b_${i}_${j}`
             td.addEventListener('click', () => {
-                board.new_agent([i, j])
+                if(block_type === 'agent'){
+                    board.new_agent([i, j])
+                }else{
+                    board.set([i, j], CLASS2PSTAT[block_type])
+                }
             })
             tr.appendChild(td)
         }
         table.appendChild(tr)
     }
     ele.appendChild(table)
+}
+
+function set_block_type(t){
+    const selected_type = document.getElementById('selected_type')
+    selected_type.classList.remove(block_type)
+    selected_type.classList.add(t)
+    block_type = t
+}
+function init_select(){
+    document.querySelectorAll('.type-option[value]').forEach(s => {
+        let val = s.getAttribute('value')
+        s.addEventListener('click', evt => {
+            set_block_type(val)
+        })
+    })
 }
