@@ -4,13 +4,12 @@ from graph import Graph
 from evolution import Evolution
 
 # 随便写的参数
-pop_size      = 20
+pop_size      = 15
 node          = 6
-alpha         = 0.4
-exchange_rate = 0.05
-mutate_rate   = 0.5
-mutate_range  = (-3, 3)
-generation_num= 1000
+alpha         = 0.5
+crossover_rate = 0.02
+mutate_rate   = 0.1
+generation_num= 5
 
 use_gui = False
 gui_plot_col  = 5
@@ -25,27 +24,19 @@ edges = [
   (2, 4, 1),
   (0, 3, 15),
   (1, 4, 8),
-  (4, 5, 91),
-  (4, 5, 76),
-  (5, 0, 36),
   (2, 0, 54),
   (4, 0, 2),
   (5, 2, 4),
   (5, 3, 2),
   (2, 5, 44),
-  (4, 3, 67),
   (0, 2, 28),
   (5, 1, 46),
-  (1, 2, 76),
   (4, 2, 72),
   (5, 3, 41),
   (3, 5, 64),
   (1, 3, 93),
-  (3, 4, 40),
   (3, 0, 1),
   (1, 5, 82),
-  (3, 2, 98),
-  (3, 2, 54),
 ]
 
 
@@ -55,12 +46,10 @@ for f, t, d in edges:
 
 evol = Evolution(
   pop_size,
-  node + 1,
-  (0, node-1),
+  node,
   alpha,
-  exchange_rate,
+  crossover_rate,
   mutate_rate,
-  mutate_range,
   graph
 )
 

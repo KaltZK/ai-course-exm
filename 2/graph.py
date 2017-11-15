@@ -30,25 +30,13 @@ class Graph(object):
     return val
 
   def get_distance(self, path):
-    dist = 0
-    if not self.valid_loop(path):
-      return self.INFINITY
+    dist = self[ path[-1], path[0] ]
     for i in xrange(1, len(path)):
       ed = self[ path[i-1], path[i] ]
-      if ed == self.INFINITY:
+      dist += ed
+      if dist == self.INFINITY:
         return self.INFINITY
-      else:
-        dist += ed
     return dist
-
-  def valid_loop(self, path):
-    mark = [False] * self.v_num
-    if path[0] != path[-1]:
-      return False
-    # print path
-    for v in path:
-      mark[v] = True
-    return all(mark)
   
   def get_edges_on_path(self, path):
     edges = []
