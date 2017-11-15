@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #encoding=UTF-8
 import random
+import itertools
 class Evolution(object):
   def __init__(self, 
     pop_size, 
@@ -51,32 +52,26 @@ class Evolution(object):
     self.individuals = next_generation
 
   def crossover(self):
-    for i, vec1 in enumerate(self.individuals):
-      for j, vec2 in enumerate(self.individuals):
-        if random.random() >= self.crossover_rate:
+    for vi1, vec1 in enumerate(self.individuals):
+      for vi2, vec2 in enumerate(self.individuals):
+        if vi1 == vi2 or random.random() >= self.crossover_rate:
           continue
-        print vec1, vec2
-        vec1.reverse()
-        vec2.reverse()
-        nv1 = []
-        nvs1=set()
-        nv2 = []
-        nvs2=set()
-        while vec1 or vec2:
-          if vec1 and vec1[-1] not in nvs1:
-            val = vec1.pop()
-            nv1.append( val )
-            nvs1.add(val)
-          if vec2 and vec2[-1] not in nvs2:
-            val = vec2.pop()
-            nv2.append( val )
-            nvs2.add(val)
-          vec1, vec2 = vec2, vec1
-        vec1.extend(nv1)
-        vec2.extend(nv2)
-        print vec1, vec2, '$'
-        self.record_crossover(i, j)
-        self.record_crossover(j, i)
+        bp = random.randint(0, self.scale-1)
+        ep = self.scale
+        sv1 = vec1[bp: ep]
+        sv2 = vec2[bp: ep]
+        map1= dict(zip(sv2, sv1))
+        map2= dict(zip(sv1, sv2))
+        vec1[bp: ep], vec2[bp: ep] = sv2, sv1
+        for i in itertools.chain(xrange(0, bp), xrange(ep, self.scale)):
+          for v, m in [(vec1, map1), (vec2, map2)]:
+            p = v[i]
+            while p in m:
+              p = m[p]
+            v[i] = p
+        self.record_crossover(vi1, vi2)
+        self.record_crossover(vi2, vi1)
+
   def record_crossover(self, f, t):
     if f in self.crossover_record:
       self.crossover_record[f].add(t)
@@ -107,17 +102,18 @@ class Evolution(object):
     self.generation_index += 1
     return self.individuals
   
-  def display(self):
+  def display(self, path = True, mutate = True, crossover = True):
     print "Generation", self.generation_index
     for i, vec in enumerate(self.individuals):
       print i, ":",
-      for j, v in enumerate(vec):
-        print v, '->',
-      print vec[0],
+      if path:
+        for j, v in enumerate(vec):
+          print v, '->',
+        print vec[0],
       print '# Distance =', self.graph.get_distance(vec),
-      if i in self.mutate_record:
+      if mutate and i in self.mutate_record:
         print '!!Mutated!!',
-      if i in self.crossover_record:
+      if crossover and i in self.crossover_record:
         print '@ Crossover with: [', ', '.join(map(str, self.crossover_record[i])),']',
       print
     print
