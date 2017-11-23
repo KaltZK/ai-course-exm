@@ -3,32 +3,42 @@
 import numpy as np
 import layer
 class Network(object):
-  def __init__(self, number, layers):
-    self.number = number
+  def __init__(self, layers):
+    
     self.layers = layers
-  
-  def init(number, dimension):
+
     for l in self.layers:
       if isinstance(l, layer.Input):
-        l.set_shape(dimension, number)
-      elif isinstance(l, layer.Output):
-        l.set_shape(dimension, 1)
+        dim = l.number
       else:
-        
+        l.set_input(dim)
 
-  def run(self, X):
+  def exec_x(self, X):
+    (n, ) = X.shape
+    X = X.reshape(n, 1)
     for l in self.layers:
-      y = l.priv(X)
-      X = np.repeat(y, self.number).reshape(self.number, self.number).T
-      print X.shape
+      X = l.priv(X)
+    X = np.array(X).reshape( ( l.number, ) )
     return X
 
-  def train(self, X, y, times):
+  def run(self, Xs):
+    return np.array(map(self.exec_x, np.array(Xs)))
+
+  def train(self, Xs, ys, times):
+    Xs = np.array(Xs)
+    ys = np.array(ys)
+    xnum, xdim = Xs.shape
+    ynum, ydim = ys.shape
+    # ys = ys.reshape((num, 1))
     for i in xrange(times):
-      f = self.run(X)
-      loss = layer.Layer.loss(y, f)
-      print '#',i, 'loss=', loss
-      self.back_propagation(f)
+      total_loss = 0
+      for X, y in zip(Xs, ys):
+        f = self.exec_x(X)
+        loss = layer.Layer.loss(y, f)
+        # print '#',i, 'loss=', loss
+        total_loss += loss
+        self.back_propagation(f)
+      print '#', i, 'loss=', total_loss/num
 
   def back_propagation(self, f):
     delta, W = np.array(f), None
