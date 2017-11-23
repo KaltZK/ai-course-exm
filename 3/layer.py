@@ -6,12 +6,12 @@ import numpy as np
 class Layer(object):
   def __init__(self, number):
     self.number  = number # last_m
+    self.sample_number = 1
     
   def set_input(self, dimension, c):
     self.c = c
     print 'init layer', (self.number, dimension)
     self.dimension = dimension  # m
-    # self.W = np.zeros( (self.number, self.dimension + 1) )
     self.W = 0.1 * np.random.randn( self.number, self.dimension + 1 )
   @staticmethod
   def loss(d, f):
@@ -19,10 +19,7 @@ class Layer(object):
 
   @staticmethod
   def sigmoid(x):
-    # print x
     f = 1 / ( 1 + np.exp(-x) )
-    # print f
-    # assert( (-10 <= x).all() and (x <= 10).all() ) # test
     return f
 
   @classmethod
@@ -33,46 +30,51 @@ class Layer(object):
   def updateW(self, delta):
     # W_old + delta * X -> W_new
     # (number, dimension+1) + (number, 1) * (dimension+1, 1)T -> (number, dimension+1)
+    # delta_ = np.sum(delta, axis=1).reshape(1, self.number)
+    delta_ = delta
     # print 'updateW', 'W', self.W.shape, 'delta', delta.shape, 'last_X.T', self.last_X.T.shape
-    self.W = self.W + self.c * np.dot( delta , self.last_X.T )
-    # self.W /= np.sum(self.W)# TEST ???
+    # print 'delta', delta_
+    # print 'X', self.last_X.T
+    new_W = self.W + self.c * np.dot( delta_ , self.last_X.T )
+    self.W = new_W
     assert(self.W.shape == (self.number, self.dimension + 1))
 
-class PrivLayer(Layer):
-  def priv(self, X):
+class ForwardLayer(Layer):
+  def forward(self, X):
     #   W * X -> y
     # (number, dimension+1) * (dimension+1, 1) -> (number, 1)
-    # print X.shape, self.dimension
-    assert( X.shape == (self.dimension, 1) )
-    # x0 = np.repeat(1, self.number).reshape((self.number, 1)) # add beta/x0
-    x0 = [[0]]
+    assert( X.shape == (self.dimension, self.sample_number) )
+    x0 = np.repeat(1, self.sample_number).reshape(1, self.sample_number)
     X = np.insert(X, (0, ), x0, axis = 0)
     
     self.last_X = X
-    # print self.W , X
-    # print self.W , X 
-    self.last_f = self.sigmoid( np.dot( self.W , X ) ).reshape(self.number, 1)
+    self.last_f = self.sigmoid( np.dot( self.W , X ) )
     return self.last_f
 
-class BackLayer(Layer):
-  def back(self, next_delta, next_W):
+class BackwardLayer(Layer):
+  def backward(self, next_delta, next_W):
     # d_sigmoid(f) .* FUNC?( next_W , next_delta ) -> delta
     # (number, 1) .*  FUNC?( (number_next, number+1) , (number_next, 1) ) -> (number, 1)
     (nnum, ndim) = next_W.shape
     f = self.last_f
     df = f * (1-f)
 
-    assert(df.shape == (self.number, 1))
+    assert(df.shape == (self.number, self.sample_number))
 
     # delta = df * np.dot( next_W.T , next_delta )
     # delta = np.delete(delta, (0, ), axis = 0) # 强行裁剪
     # 上面的做法是错的
 
-    # print 'back', 'df', df.shape, 'next_W', next_W.shape, 'next_delta', next_delta.shape
-    _right = np.sum( next_W + next_delta , axis = 0 ).reshape(self.number + 1, 1)
+    _right = np.array([
+      np.sum( next_W + cT.T.reshape(nnum, 1) , axis = 0 ).T
+      for cT in next_delta.T
+    ]).T
+    
+    # print 'R',df
     delta = df * np.delete(_right, (0, ), axis = 0)
+    # print 'Rd',delta
 
-    assert( delta.shape == (self.number, 1) )
+    assert( delta.shape == (self.number, self.sample_number) )
 
     self.updateW(delta)
     return delta, self.W
@@ -82,25 +84,26 @@ class Input(Layer): # just do nothing
   
   def __init__(self, dimension):
     self.number = dimension
+    self.W = None
 
-  def priv(self, X):
+  def forward(self, X):
     dm, dmx = X.shape
-    assert(dm == self.number and dmx == 1)
+    # print X.shape
+    # print (self.number, self.sample_number)
+    assert(dm == self.number and dmx == self.sample_number)
     return X
 
-  def back(self, next_delta, next_W):
+  def backward(self, next_delta, next_W):
     return next_delta, next_W
 
-class Output(PrivLayer): # generate delta
-  def back(self, y, _):
+class Output(ForwardLayer): # generate delta
+  def backward(self, y, _):
     # (y - f) * d_sigmoid(f) -> delta
     # (number, 1) .* (number, 1) -> (number, 1) ???
     delta = (y - self.last_f) * self.d_sigmoid(self.last_f)
-    # print 'output:back', 'W', self.W.shape, 'delta', delta.shape
-    # print delta.shape, self.last_f.shape, self.d_sigmoid(self.last_f).shape
-    assert( delta.shape == (self.number, 1) )
+    assert( delta.shape == (self.number, self.sample_number) )
     self.updateW(delta)
     return delta, self.W
 
-class Dense(PrivLayer, BackLayer): # hidden layer
+class Dense(ForwardLayer, BackwardLayer): # hidden layer
   pass

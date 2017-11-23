@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #encoding=UTF-8
+import decimal
 import numpy as np
 import layer
 class Network(object):
@@ -15,44 +16,38 @@ class Network(object):
     
     self.each_bp_func = None
 
-  def exec_x(self, X):
-    (n, ) = X.shape
-    X = X.reshape(n, 1)
+
+  def exec_X(self, X):
+    X = X.T
     for l in self.layers:
-      X = l.priv(X)
-    X = np.array(X).reshape( ( l.number, ) )
+      X = l.forward(X)
     return X
 
   def run(self, Xs):
-    return np.array(map(self.exec_x, np.array(Xs)))
+    return self.exec_X(Xs)
+    # return np.array(map(self.exec_x, np.array(Xs)))
 
   def train(self, Xs, ys, times):
-    Xs = np.copy(Xs)
+    Xs = np.array(np.copy(Xs))
     ys = np.array(ys)
     xnum, xdim = Xs.shape
     ynum, ydim = ys.shape
     assert(xnum == ynum)
-    # _result = [None] * ynum
-    # ys = ys.reshape((num, 1))
+    for l in self.layers:
+      l.sample_number = xnum
+
+    y = ys.T
+    
+    if self.each_bp_func is not None:
+        self.each_bp_func()
     for i in xrange(times):
-      total_loss = 0
-      pairs = zip(Xs, ys)
-      np.random.shuffle(pairs)
-      for j, (X, y) in enumerate(pairs):
-        y = y.reshape(ydim, 1)
-        f = self.exec_x(X)
-        # print f, y
-        loss = layer.Layer.loss(y, f)
-        # print '#',i, 'loss=', loss
-        total_loss += loss
-        self.back_propagation(y)
-        # if self.each_bp_func is not None:
-        #   _result[j] = f
+      f = self.exec_X(Xs)
+      # print f, y
+      loss = layer.Layer.loss(y, f)
+      print '#',i, 'loss=', loss
+      self.back_propagation(y)
       if self.each_bp_func is not None:
         self.each_bp_func()
-          # self.each_bp_func(_result)
-          # _result = [None] * ynum
-      print '#', i, 'loss=', total_loss/ynum
 
   def on_each_bp(self, func):
     self.each_bp_func = func
@@ -60,4 +55,4 @@ class Network(object):
   def back_propagation(self, d):
     delta, W = d, None
     for l in reversed(self.layers):
-      delta, W = l.back(delta, W)
+      delta, W = l.backward(delta, W)
