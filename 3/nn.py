@@ -40,6 +40,7 @@ class Network(object):
     
     if self.each_bp_func is not None:
         self.each_bp_func()
+  
     for i in xrange(times):
       f = self.exec_X(Xs)
       # print f, y

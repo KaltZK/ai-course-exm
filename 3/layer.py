@@ -22,6 +22,10 @@ class Layer(object):
     f = 1 / ( 1 + np.exp(-x) )
     return f
 
+  @staticmethod
+  def relu(x):
+    return x * (x > 0)
+
   @classmethod
   def d_sigmoid(cls, x):
     z = np.array(cls.sigmoid(x))
@@ -48,7 +52,9 @@ class ForwardLayer(Layer):
     X = np.insert(X, (0, ), x0, axis = 0)
     
     self.last_X = X
+
     self.last_f = self.sigmoid( np.dot( self.W , X ) )
+
     return self.last_f
 
 class BackwardLayer(Layer):
@@ -57,23 +63,16 @@ class BackwardLayer(Layer):
     # (number, 1) .*  FUNC?( (number_next, number+1) , (number_next, 1) ) -> (number, 1)
     (nnum, ndim) = next_W.shape
     f = self.last_f
+
     df = f * (1-f)
 
     assert(df.shape == (self.number, self.sample_number))
-
-    # delta = df * np.dot( next_W.T , next_delta )
-    # delta = np.delete(delta, (0, ), axis = 0) # 强行裁剪
-    # 上面的做法是错的
-
+    
     _right = np.array([
       np.sum( next_W + cT.T.reshape(nnum, 1) , axis = 0 ).T
       for cT in next_delta.T
     ]).T
-    
-    # print 'R',df
     delta = df * np.delete(_right, (0, ), axis = 0)
-    # print 'Rd',delta
-
     assert( delta.shape == (self.number, self.sample_number) )
 
     self.updateW(delta)
@@ -88,8 +87,6 @@ class Input(Layer): # just do nothing
 
   def forward(self, X):
     dm, dmx = X.shape
-    # print X.shape
-    # print (self.number, self.sample_number)
     assert(dm == self.number and dmx == self.sample_number)
     return X
 
@@ -100,7 +97,11 @@ class Output(ForwardLayer): # generate delta
   def backward(self, y, _):
     # (y - f) * d_sigmoid(f) -> delta
     # (number, 1) .* (number, 1) -> (number, 1) ???
-    delta = (y - self.last_f) * self.d_sigmoid(self.last_f)
+    
+    # may be wrong
+    # delta = (y - self.last_f) * self.d_sigmoid(self.last_f)
+    delta = (y - self.last_f) * self.last_f * (1-self.last_f)
+
     assert( delta.shape == (self.number, self.sample_number) )
     self.updateW(delta)
     return delta, self.W
