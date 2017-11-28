@@ -18,6 +18,10 @@ class Layer(object):
     return np.sum( ( d-f ) ** 2 )
 
   @staticmethod
+  def softmax(y):
+    return y / y.sum(axis = 0)
+
+  @staticmethod
   def sigmoid(x):
     f = 1 / ( 1 + np.exp(-x) )
     return f
@@ -53,8 +57,8 @@ class ForwardLayer(Layer):
     
     self.last_X = X
 
-    self.last_f = self.sigmoid( np.dot( self.W , X ) )
-
+    y = self.sigmoid( np.dot( self.W , X ) )
+    self.last_f = self.softmax(y)
     return self.last_f
 
 class BackwardLayer(Layer):
@@ -72,6 +76,8 @@ class BackwardLayer(Layer):
       np.sum( next_W + cT.T.reshape(nnum, 1) , axis = 0 ).T
       for cT in next_delta.T
     ]).T
+    print _right
+
     delta = df * np.delete(_right, (0, ), axis = 0)
     assert( delta.shape == (self.number, self.sample_number) )
 

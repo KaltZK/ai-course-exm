@@ -24,7 +24,7 @@ class Network(object):
     return X
 
   def run(self, Xs):
-    return self.exec_X(Xs)
+    return self.exec_X(Xs).T
     # return np.array(map(self.exec_x, np.array(Xs)))
 
   def train(self, Xs, ys, times):
