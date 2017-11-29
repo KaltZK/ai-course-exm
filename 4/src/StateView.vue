@@ -1,5 +1,5 @@
 <template lang="jade">
-div
+div(:class="{visited: visited}")
   template(v-if="state")
     p F(x): {{state.distance}}
     p H(x): {{state.h}}
@@ -16,7 +16,7 @@ div
 <script lang="coffee">
 export default
   name: 'state-view'
-  props: ['state']
+  props: ['state', 'visited']
 </script>
 
 <style scoped>
@@ -32,5 +32,8 @@ td.non-empty{
 }
 td.empty{
   background-color: white;
+}
+.visited{
+  background-color: #FEDFE1;
 }
 </style>

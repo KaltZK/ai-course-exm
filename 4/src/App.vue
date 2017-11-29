@@ -12,6 +12,7 @@
         .row
           .col-xs-12
             p ROUND: {{round}}
+            p QUEUE: {{queue_tail - queue_head}}
         .row
           .col-xs-12
             h3 {{message}}
@@ -40,14 +41,15 @@
       .col-xs-12
         h3 RESULT
         template(v-for="offset in 4")
-          state-view.col-xs-3(:state="results[(display_index + offset) % results.length]")
+          span.glyphicon.glyphicon-menu-right.col-xs-1.res-right-arrow(v-if="offset != 1")
+          state-view.col-xs-2(:state="results[(display_index + offset -1) % results.length]")
     .row
       .col-xs-12
         h3 CHILDREN STATE
         .container
           .row
             template(v-for="s in children_state")
-              state-view.col-xs-3(:state="s")
+              state-view.col-xs-3(:state="s.c", :visited="s.v")
 </template>
 <script lang="coffee">
 import arraySort from 'array-sort'
@@ -75,6 +77,8 @@ export default
       display_timer: null
       results: null
       display_index: 0
+      queue_tail: 0
+      queue_head: 0
   computed:
     queue_length: ->
       bfs_state.queue.length
@@ -115,6 +119,7 @@ export default
       @round = 0
       bfs_state.queue = []
       bfs_state.visited = {}
+      @queue_head = @queue_tail = 0
 
     set_speed: ->
       @stop()
@@ -123,18 +128,24 @@ export default
       @timer = setInterval(=>
         @failed() if bfs_state.queue.length == 0
         @current_state = bfs_state.queue.shift()
+        @queue_head++
         @success() if statetools.equal(@current_state, @target_state)
 
         bfs_state.visited[@current_state.hash] = 1
-        children = statetools.children(@current_state).filter((c) => 
-          ! bfs_state.visited[c.hash]
-        )
+        children = statetools.children(@current_state)
         children = arraySort(children, 'h')
+        # children = children.filter((s)=> !bfs_state.visited[s.])
+        children = children.map((c) =>
+          v: bfs_state.visited[c.hash],
+          c: c
+        )
+        console.log bfs_state.visited
         @children_state = children
-        # console.log @children_state
-        for c in @children_state
+        for {c, v} in children
+          continue if v
           bfs_state.visited[c.hash] = 1
           bfs_state.queue.push c
+          @queue_tail++
           if statetools.equal(c, @target_state)
             @current_state = c
             @success()
@@ -167,5 +178,8 @@ export default
 }
 .results{
   background-color: #A5DEE4;
+}
+.res-right-arrow{
+  font-size: 5rem;
 }
 </style>
