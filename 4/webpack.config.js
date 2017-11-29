@@ -1,22 +1,36 @@
 var path = require('path')
 var webpack = require('webpack')
+var ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
-  entry: './src/main.js',
+  entry: {
+    main: './src/main.js',
+    vendor: './src/vendor.js',
+  },
   output: {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
-    filename: 'build.js'
+    filename: '[name].js'
   },
+  plugins: [
+    new ExtractTextPlugin("[name].css"),
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jquery: "jquery",
+      "window.jQuery": "jquery",
+      jQuery:"jquery"
+    })
+  ],
   module: {
     rules: [
+      // {
+      //   test: /\.css$/,
+      //   use: [
+      //     'vue-style-loader',
+      //     'css-loader'
+      //   ],
+      // },
       {
-        test: /\.css$/,
-        use: [
-          'vue-style-loader',
-          'css-loader'
-        ],
-      },      {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
@@ -31,12 +45,24 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
+        test: /\.(jpe?g|png|gif|svg|eot|woff|ttf|svg|woff2?)$/,
         loader: 'file-loader',
         options: {
           name: '[name].[ext]?[hash]'
         }
-      }
+      },
+      {
+        test: /\.coffee$/,
+        use: [ 'coffee-loader' ]
+      },
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: ["css-loader"]
+        })
+      },
+
     ]
   },
   resolve: {

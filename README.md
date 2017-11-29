@@ -13,3 +13,12 @@
 交叉互换用了Partially-Mapped Crossover，示意图简洁明了。变异就是某两个位置上的节点编号互换。
 
 ![](https://raw.githubusercontent.com/KaltZK/ai-course-exm/master/2/example.gif)
+
+### 3. 某不科学的神经网络
+
+
+### 4. Just BFS
+
+利用BFS寻找八数码问题的解。
+
+[DEMO](https://kaltzk.github.io/ai-course-exm/4/)
