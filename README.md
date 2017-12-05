@@ -22,3 +22,13 @@
 利用BFS寻找八数码问题的解。
 
 [DEMO](https://kaltzk.github.io/ai-course-exm/4/)
+
+### 5. A*
+
+基本用了上一个代码
+
+只不过是A*算法
+
+Emmmmm快一点
+
+[DEMO](https://kaltzk.github.io/ai-course-exm/5/)
