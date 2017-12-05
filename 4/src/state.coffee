@@ -87,9 +87,7 @@ zero_pos = (arr) ->
     if arr[i] == 0
       return index2pos i
 
-export random_state= ->
-  arr = [0...9]
-  arr = shuffle arr
+export from_array = (arr) ->
   s = {
     parent: null,
     distance: 0,
@@ -100,6 +98,11 @@ export random_state= ->
   s.hash = hash(s)
   s.p = s.h + s.distance
   s
+
+export random_state= ->
+  arr = [0...9]
+  arr = shuffle arr
+  from_array arr
 
 export get_seq = (cur_state) ->
   seq = []

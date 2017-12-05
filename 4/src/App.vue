@@ -2,9 +2,25 @@
 #app
   .container
     .row
-      .col-xs-3
+      .col-xs-3(v-if="!edit_init_state", @click="start_edit")
         h3 INITIAL STATE
         state-view(:state="init_state")
+      .col-xs-3.container(v-else)
+        .row
+          h3 SET INITIAL STATE
+          textarea.col-xs-12(
+            v-model="edit_content",
+            placeholder="Initial State", 
+            type="text", 
+            rows="3")
+        .row
+          .col-xs-12.container
+            .row
+              button.btn.col-xs-12(@click="stop_edit")
+                | SET
+            .row
+              button.btn.col-xs-12(@click="edit_init_state = false")
+                | CANCEL
       .col-xs-3.container
         .row
           .col-xs-12
@@ -79,6 +95,8 @@ export default
       display_index: 0
       queue_tail: 0
       queue_head: 0
+      edit_init_state: false
+      edit_content: ''
   computed:
     queue_length: ->
       bfs_state.queue.length
@@ -87,6 +105,24 @@ export default
       @stop()
       @stop_displaying()
       @init_state = statetools.random_state()
+
+    start_edit: ->
+      @edit_content = @init_state
+                        .arr.map((i)=> i.toString()).join('')
+                        .split(/(\d{3})/)
+                        .filter((s)=> s.length)
+                        .join("\n")
+      @edit_init_state = true
+
+    stop_edit: ->
+      arr = @edit_content
+          .split('')
+          .filter((s)=> s >= '0' && s <= '9')
+          .map((i) => parseInt(i))
+      @init_state = statetools.from_array(arr)
+      @init_search()
+      @edit_init_state = false
+    
     i_am_feeling_lucky: ->
       it = setInterval(=>
         s = @generate_state()
@@ -139,7 +175,6 @@ export default
           v: bfs_state.visited[c.hash],
           c: c
         )
-        console.log bfs_state.visited
         @children_state = children
         for {c, v} in children
           continue if v
