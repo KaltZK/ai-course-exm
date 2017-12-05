@@ -57,7 +57,8 @@
       .col-xs-12
         h3 RESULT
         template(v-for="offset in 4")
-          span.glyphicon.glyphicon-menu-right.col-xs-1.res-right-arrow(v-if="offset != 1")
+          div.col-xs-1(v-if="offset != 1") TO
+          // span.glyphicon.glyphicon-menu-right.col-xs-1.res-right-arrow(v-if="offset != 1")
           state-view.col-xs-2(:state="results[(display_index + offset -1) % results.length]")
     .row
       .col-xs-12
