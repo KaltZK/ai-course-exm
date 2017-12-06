@@ -56,17 +56,22 @@
     .row.results(v-if="results")
       .col-xs-12
         h3 RESULT
-        template(v-for="offset in 4")
-          div.col-xs-1(v-if="offset != 1") TO
-          // span.glyphicon.glyphicon-menu-right.col-xs-1.res-right-arrow(v-if="offset != 1")
-          state-view.col-xs-2(:state="results[(display_index + offset -1) % results.length]")
+        div
+          template(v-for="(r, i) in results")
+            state-view.state-view(:state="r")
     .row
       .col-xs-12
         h3 CHILDREN STATE
         .container
           .row
             template(v-for="s in children_state")
-              state-view.col-xs-3(:state="s.c", :visited="s.v")
+              state-view.col-xs-3(
+                :state="s.c", 
+                :switched="s.swd",
+                :ignored ="s.ign",
+                :updated_from_open="s.oud",
+                :updated_from_close="s.cud"
+              )
 </template>
 <script lang="coffee">
 import arraySort from 'array-sort'
@@ -77,7 +82,8 @@ import * as statetools from './state.coffee'
 
 search_state =
   heap: null
-  visited: {}
+  open: {}
+  close: {}
 
 export default
   name: 'app',
@@ -99,6 +105,8 @@ export default
       queue_head: 0
       edit_init_state: false
       edit_content: ''
+      open_counter: 0
+      close_counter: 0
   computed:
     queue_length: ->
       @queue_tail - @queue_head
@@ -158,48 +166,83 @@ export default
       search_state.heap = new Heap((a, b) => 
         a.p - b.p
       )
-      search_state.visited = {}
+      search_state.open = {}
+      search_state.close = {}
       @queue_head = @queue_tail = 0
+      @open_counter = @close_counter = 0
+
+      search_state.heap.push(@init_state)
+      @open_add(@init_state)
       @queue_tail++
+    
+    open_add: (s) ->
+      search_state.open[s.hash] = s
+      @open_counter++
+
+    open_del: (s) ->
+      delete search_state.open[s.hash]
+      @open_counter--
+    
+    close_add: (s) ->
+      search_state.close[s.hash] = s
+      @close_counter++
+
+    close_del: (s) ->
+      delete search_state.close[s.hash]
+      @close_counter--
 
     set_speed: ->
       @stop()
       @search_start()
+    
     search_start: ->
       @timer = setInterval(=>
-        # console.log @queue_head, @queue_tail
         @failed() if @queue_tail <= @queue_head
         @current_state = search_state.heap.pop()
+        
         @queue_head++
         @success() if statetools.equal(@current_state, @target_state)
 
-        search_state.visited[@current_state.hash] = 1
+        @open_del(@current_state)
+        @close_add(@current_state)
+
         children = statetools.children(@current_state)
-        children = arraySort(children, 'h')
-        # children = children.filter((s)=> !search_state.visited[s.])
         children = children.map((c) =>
-          v: search_state.visited[c.hash],
-          c: c
+          opened_self = search_state.open[c.hash]
+          closed_self = search_state.close[c.hash]
+          swd = ign = oud = cud = false
+
+          if opened_self or closed_self
+            ign = true
+            if opened_self and c.p < opened_self.p
+              statetools.replace(c, opened_self)
+              search_state.heap.heapify()
+              oud = true
+            else if closed_self and c.p < closed_self.p
+              @close_del(c)
+              @open_add(c)
+              search_state.heap.push(c)
+              cud = true
+
+
+          {c, swd, ign, oud, cud}
         )
         @children_state = children
-        for {c, v} in children
-          continue if v
-          search_state.visited[c.hash] = 1
-          search_state.heap.push c
-          @queue_tail++
-          if statetools.equal(c, @target_state)
-            @current_state = c
-            @success()
-            break
-        # @queue = arraySort(@queue, 'h')
+        for {c, cud, oud, ign} in children
+          unless ign
+            @open_add(c)
+            search_state.heap.push(c)
+            @queue_tail++
+            if statetools.equal(c, @target_state)
+              @current_state = c
+              @success()
+              break
         @round++
 
       , parseInt(@time_sep))
     a_star: ->
       @stop_displaying()
       @init_search()
-      search_state.heap.push @init_state
-      search_state.visited[@init_state.hash] = true
       @search_start()
   created: ->
     @generate_state()
@@ -219,8 +262,12 @@ export default
 }
 .results{
   background-color: #A5DEE4;
+  overflow-x: scroll;
+  white-space: nowrap;
 }
-.res-right-arrow{
-  font-size: 5rem;
+.state-view{
+  display: inline-block;
+  margin-left:  1rem;
+  margin-right: 1rem;
 }
 </style>

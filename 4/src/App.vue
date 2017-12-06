@@ -56,10 +56,9 @@
     .row.results(v-if="results")
       .col-xs-12
         h3 RESULT
-        template(v-for="offset in 4")
-          div.col-xs-1(v-if="offset != 1") TO
-          // span.glyphicon.glyphicon-menu-right.col-xs-1.res-right-arrow(v-if="offset != 1")
-          state-view.col-xs-2(:state="results[(display_index + offset -1) % results.length]")
+        div
+          template(v-for="(r, i) in results")
+            state-view.state-view(:state="r")
     .row
       .col-xs-12
         h3 CHILDREN STATE
@@ -98,6 +97,8 @@ export default
       queue_head: 0
       edit_init_state: false
       edit_content: ''
+      open_snapshot: null
+      close_snapshot: null
   computed:
     queue_length: ->
       bfs_state.queue.length
@@ -214,8 +215,12 @@ export default
 }
 .results{
   background-color: #A5DEE4;
+  overflow-x: scroll;
+  white-space: nowrap;
 }
-.res-right-arrow{
-  font-size: 5rem;
+.state-view{
+  display: inline-block;
+  margin-left:  1rem;
+  margin-right: 1rem;
 }
 </style>

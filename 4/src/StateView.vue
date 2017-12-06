@@ -1,7 +1,7 @@
 <template lang="jade">
 div(:class="{visited: visited}")
   template(v-if="state")
-    p F(x): {{state.distance}}
+    p D(x): {{state.distance}}
     p H(x): {{state.h}}
     table
       tr(v-for="row in 3")

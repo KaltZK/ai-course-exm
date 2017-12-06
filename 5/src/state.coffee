@@ -37,7 +37,11 @@ export index2pos= (idx) ->
 export valid_index=(idx)->
   valid_pos(index2pos(idx))
 
-
+export replace=(src, dst) ->
+  throw "NOT EQUAL" unless equal(src, dst)
+  dst.h = src.h
+  dst.distance = src.distance
+  dst.p = src.p
 
 export distance_to_target = (state) ->
   dist = 0
@@ -78,9 +82,7 @@ export children= (state) ->
     swap_by_index state, th_idx, cdx
 
 export equal= (s1, s2) ->
-  for i in [0...9]
-    return false if s1.arr[i] != s2.arr[i]
-  true
+  s1.hash == s2.hash
 
 zero_pos = (arr) ->
   for i in [0...9]
