@@ -1,12 +1,9 @@
 <template lang="jade">
-div(:class="get_class()")
+div(:class="{visited: visited}")
   template(v-if="state")
     p D(x): {{state.distance}}
     p H(x): {{state.h}}
     p F(x): {{state.p}}
-    p(v-if="update_from_open") UPDATED ON OPEN
-    p(v-if="update_from_close") REOPENED
-    p(v-if="switched") SWITCHED WITH PARENT
     table
       tr(v-for="row in 3")
         template(v-for="col in 3")
@@ -20,15 +17,7 @@ div(:class="get_class()")
 <script lang="coffee">
 export default
   name: 'state-view'
-  props: ['state', 'ignored', 'switched', 'update_from_open', 'update_from_close']
-  methods: 
-    get_class: ->
-      if @switched or @update_from_close or @update_from_open
-        'updated'
-      else if @ignored
-        'ignored'
-      else
-        ''
+  props: ['state', 'visited']
 </script>
 
 <style scoped>
@@ -45,12 +34,7 @@ td.non-empty{
 td.empty{
   background-color: white;
 }
-
-.updated{
-  background-color: rgb(250, 214, 137);
-}
-
-.ignored{
+.visited{
   background-color: #FEDFE1;
 }
 </style>

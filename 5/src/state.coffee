@@ -82,7 +82,9 @@ export children= (state) ->
     swap_by_index state, th_idx, cdx
 
 export equal= (s1, s2) ->
-  s1.hash == s2.hash
+  for i in [0...9]
+    return false if s1.arr[i] != s2.arr[i]
+  true
 
 zero_pos = (arr) ->
   for i in [0...9]

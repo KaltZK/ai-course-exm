@@ -97,8 +97,6 @@ export default
       queue_head: 0
       edit_init_state: false
       edit_content: ''
-      open_snapshot: null
-      close_snapshot: null
   computed:
     queue_length: ->
       bfs_state.queue.length
