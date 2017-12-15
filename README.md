@@ -33,3 +33,9 @@ FUCK
 Emmmmm快一点
 
 [DEMO](https://kaltzk.github.io/ai-course-exm/5/)
+
+### 6. 传教士体位
+
+使用搜索查找传教士与蛮人一起过河如何不被肛的方案(船可载2人)
+
+[DEMO](https://kaltzk.github.io/ai-course-exm/6/)
