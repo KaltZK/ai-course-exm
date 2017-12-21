@@ -5,6 +5,14 @@
 
 #define SEARCH_DEPTH 3
 
+struct NeighborInfo{
+  int x, y, neighbors;
+};
+
+struct NeighborInfo neighbor_info(int x, int y, int n);
+
+int neighbor_info_cmp(const void *_a, const void *_b);
+
 struct GameState *search_by_player(
   struct GameState *state, 
   struct Range rang,
@@ -27,5 +35,6 @@ struct GameState *search_by_white(
   struct GameState *state, 
   struct Range rang,
   int depth);
+
 
 #endif

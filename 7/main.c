@@ -18,7 +18,7 @@ void display(){
   while(!end_state(ns)){
     next = funcs[i%2](ns, r, SEARCH_DEPTH);
     free(ns);
-    printf("Player: %s (Round %d)\n", names[i%2], i);
+    printf("Player: %s (Round %d)\n", names[i%2], i+1);
     display_state(next);
     ns = next;
     i++;
@@ -74,7 +74,7 @@ void battle(){
   ns = new_state();
   i = 0;
   while(ns != NULL && !end_state(ns)){
-    printf("Player: %s (Round %d)\n", names[i%2], i);
+    printf("Player: %s (Round %d)\n", names[i%2], i+1);
     next = funcs[type][i%2](ns, r, SEARCH_DEPTH);
     display_state(next);
     free(ns);
