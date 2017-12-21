@@ -26,6 +26,7 @@ struct Range{
 struct GameState {
   enum PosState board[B_WIDTH][B_HEIGHT];
   int weight;
+  int step;
 };
 
 struct GameOperation{
@@ -60,5 +61,7 @@ int max(int a, int b);
 int min(int a, int b);
 
 int end_state(struct GameState *s);
+
+int empty_state(struct GameState *s);
 
 #endif

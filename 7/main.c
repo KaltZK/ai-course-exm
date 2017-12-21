@@ -16,13 +16,12 @@ void display(){
   display_state(s);
   ns = s;
   while(!end_state(ns)){
-    printf("Player: %s (Round %d)\n", names[i%2], i);
     next = funcs[i%2](ns, r, SEARCH_DEPTH);
     free(ns);
+    printf("Player: %s (Round %d)\n", names[i%2], i);
     display_state(next);
     ns = next;
     i++;
-    puts("");
   }
   if(is_pos_inf(ns->weight)){
     puts("Black Wins!");
@@ -74,7 +73,7 @@ void battle(){
   assert(type >= 0 && type < 2);
   ns = new_state();
   i = 0;
-  while(!end_state(ns)){
+  while(ns != NULL && !end_state(ns)){
     printf("Player: %s (Round %d)\n", names[i%2], i);
     next = funcs[type][i%2](ns, r, SEARCH_DEPTH);
     display_state(next);
@@ -82,10 +81,14 @@ void battle(){
     ns = next;
     i++;
   }
-  if(is_pos_inf(ns->weight)){
-    puts("Black Wins!");
+  if(ns != NULL){
+    if(is_pos_inf(ns->weight)){
+      puts("Black Wins!");
+    }else{
+      puts("White Wins!");
+    }
   }else{
-    puts("White Wins!");
+    puts("State is Empty: Failed to search.");
   }
 }
 

@@ -3,7 +3,7 @@
 
 #include "state_helpers.h"
 
-#define SEARCH_DEPTH 2
+#define SEARCH_DEPTH 3
 
 struct GameState *search_by_player(
   struct GameState *state, 

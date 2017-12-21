@@ -7,6 +7,7 @@
 #define DEBUG 5
 
 enum PosState get_state(struct GameState *s, int x, int y){
+  assert(x>=0 && x<B_WIDTH && y>=0 && y<B_HEIGHT);
   return s->board[x][y];
 }
 
@@ -23,15 +24,48 @@ int min(int a, int b){
   return a < b ? a : b;
 }
 
+
+static int get_weight_in_seq(int counter, int empty_side){
+  if(counter == 3){
+    if(empty_side == 2){
+      return 64;
+    }else if(empty_side == 1){
+      return 8;
+    }else{
+      return 0;
+    }
+  }else if(counter == 4){
+    if(empty_side == 2){
+      return 256;
+    }else if(empty_side == 1){
+      return 128;
+    }else{
+      return 0;
+    }
+  }else if(counter >= 5){
+    return C_INF;
+  }else{
+    if(empty_side == 2){
+      return counter;
+    }else if(empty_side == 1){
+      return counter/2;
+    }else{
+      return 0;
+    }
+  }
+}
+
 static void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
-  const int len_weight[] = {0, 1, 2, 16, 64, C_INF};
+  // const int len_weight[] = {0, 1, 2, 4, 128, C_INF};
   // const int len_weight[] = {0, 1, 2, 3, 4, 5};
   static enum PosState last = C_EMPTY;
   static int counter = 0;
+  static int empty_side = 0;
   switch(op){
     case 0:
       last = C_EMPTY;
       counter = 0;
+      empty_side = 0;
       break;
     case 1:
       #if DEBUG > 8
@@ -44,16 +78,28 @@ static void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
       }else if(last == C_EMPTY){ /* val is not empty */
         last = val;
         counter = 1;
+        empty_side = 1;
       }else if(last == C_BLACK){
-        *black_p += len_weight[min(5, counter)];
-        if(val != C_EMPTY){
+        if(val == C_EMPTY){
+          empty_side++;
+          *black_p += get_weight_in_seq(counter, empty_side);
+          counter = 0;
+          empty_side = 1;
+        }else{
+          *black_p += get_weight_in_seq(counter, empty_side);
           counter = 1;
+          empty_side = 0;
         }
         last = val;
       }else if(last == C_WHITE){
-        *white_p += len_weight[min(5, counter)];
-        if(val != C_EMPTY){
+        if(val == C_EMPTY){
+          empty_side ++;
+          *white_p += get_weight_in_seq(counter, empty_side);
+          counter = 0;
+          empty_side = 1;
+        }else{
           counter = 1;
+          empty_side = 0;
         }
         last = val;
       }else{
@@ -62,9 +108,9 @@ static void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
       break;
     case 2:
       if(last == C_BLACK){
-        *black_p += len_weight[min(5, counter)];
+        *black_p += get_weight_in_seq(counter, empty_side);
       }else if(last == C_WHITE){
-        *white_p += len_weight[min(5, counter)];
+        *white_p += get_weight_in_seq(counter, empty_side);
       }
       break;
     default:
@@ -132,6 +178,7 @@ struct GameState *new_state(){
   struct GameState *s = malloc(sizeof(struct GameState));
   assert(s != NULL);
   memset(s->board, sizeof(s->board), C_EMPTY);
+  s->step = 0;
   calc_weight(s);
   return s;
 }
@@ -141,6 +188,7 @@ struct GameState *update_state(struct GameState *old, int x, int y, enum PosStat
   memcpy(s->board, old->board, sizeof(old->board));
   set_state(s, x, y, val);
   calc_weight(s);
+  s->step = old -> step + 1;
   return s;
 }
 
@@ -185,13 +233,19 @@ char disp_pos(enum PosState p){
 
 void display_state(struct GameState *state){
   int i, j;
-  if(is_pos_inf(state -> weight)){
-    printf("WEIGHT = +INF\n");  
-  }else if(is_neg_inf(state -> weight)){
-    printf("WEIGHT = -INF\n");  
-  }else{
-    printf("WEIGHT = %d\n", state -> weight);
+  if(state == NULL){
+    puts("|| NULL STATE ||");
+    return;
   }
+  printf("WEIGHT = ");
+  if(is_pos_inf(state -> weight)){
+    printf("+INF");  
+  }else if(is_neg_inf(state -> weight)){
+    printf("-INF");  
+  }else{
+    printf("%d", state -> weight);
+  }
+  printf(" (STEP = %d)\n", state->step);
   
   for(i=0; i<B_HEIGHT+2; i++){
     putchar('=');
@@ -231,4 +285,17 @@ struct Range range_union(struct Range a, struct Range b){
     max(a.gte, b.gte),
     min(a.lte, b.lte)
   );
+}
+
+int empty_state(struct GameState *s){
+  int i, j;
+  if(s->weight != 0) return 0;
+  for(i=0; i<B_WIDTH; i++){
+    for(j=0; j<B_HEIGHT; j++){
+      if(get_state(s, i, j) != C_EMPTY){
+        return 0;
+      }
+    }
+  }
+  return 1;
 }
