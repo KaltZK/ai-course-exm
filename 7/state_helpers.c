@@ -6,8 +6,12 @@
 
 #define DEBUG 5
 
+int valid_pos(int x, int y){
+  return x>=0 && x<B_WIDTH && y>=0 && y<B_HEIGHT;
+}
+
 enum PosState get_state(struct GameState *s, int x, int y){
-  assert(x>=0 && x<B_WIDTH && y>=0 && y<B_HEIGHT);
+  assert(s != NULL && valid_pos(x, y));
   return s->board[x][y];
 }
 
@@ -55,12 +59,13 @@ static int get_weight_in_seq(int counter, int empty_side){
   }
 }
 
-static void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
+void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
   // const int len_weight[] = {0, 1, 2, 4, 128, C_INF};
   // const int len_weight[] = {0, 1, 2, 3, 4, 5};
   static enum PosState last = C_EMPTY;
   static int counter = 0;
   static int empty_side = 0;
+  // printf("val = %d (op=%d) C_EMPTY=%d C_BLACK=%d C_WHITE=%d\n", val, op, C_EMPTY, C_BLACK, C_WHITE);
   switch(op){
     case 0:
       last = C_EMPTY;
@@ -103,6 +108,7 @@ static void _next_pos(enum PosState val, int op, int *black_p, int *white_p){
         }
         last = val;
       }else{
+        printf("Invalid value of `last' = %d\n", last);
         assert(0);
       }
       break;
@@ -177,7 +183,7 @@ void calc_weight(struct GameState *state){
 struct GameState *new_state(){
   struct GameState *s = malloc(sizeof(struct GameState));
   assert(s != NULL);
-  memset(s->board, sizeof(s->board), C_EMPTY);
+  memset(s->board, C_EMPTY, sizeof(s->board));
   s->step = 0;
   calc_weight(s);
   return s;

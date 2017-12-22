@@ -37,6 +37,7 @@ struct GameState *search_by_user(
   int ix, iy;
   printf("Your Turn (as %s). Input x y:", (fill == C_BLACK ? "Black" : "White"));
   scanf("%d%d", &ix, &iy);
+  ix--; iy--;
   assert(ix>=0 && ix < B_WIDTH && iy>=0 && iy < B_HEIGHT);
   return update_state(state, ix, iy, fill);
 }
@@ -53,6 +54,35 @@ struct GameState *state,
 struct Range rang,
 int depth){
   return search_by_user(state, C_WHITE);
+}
+
+void display_battle_map(struct GameState *state){
+  int i, j;
+  for(i=0; i<=B_WIDTH; i++){
+    printf("%2d|", i);
+  }
+  putchar('\n');
+  for(i=0; i<(B_WIDTH+1)*3; i++){
+    putchar('=');
+  }
+  putchar('\n');
+  for(i=0; i<B_WIDTH; i++){
+    if(i!=0){
+      for(j=0; j<(B_WIDTH+1)*3; j++){
+        putchar('-');
+      }
+      putchar('\n');
+    }
+    printf("%2d|", i+1);
+    for(j=0; j<B_HEIGHT; j++){
+      printf(" %c|", disp_pos(get_state(state, i, j)));
+    }
+    putchar('\n');
+  }
+  for(i=0; i<(B_WIDTH+1)*3; i++){
+    putchar('=');
+  }
+  putchar('\n');
 }
 
 void battle(){
@@ -73,12 +103,13 @@ void battle(){
   assert(type >= 0 && type < 2);
   ns = new_state();
   i = 0;
+  display_battle_map(ns);
   while(ns != NULL && !end_state(ns)){
-    printf("Player: %s (Round %d)\n", names[i%2], i+1);
     next = funcs[type][i%2](ns, r, SEARCH_DEPTH);
-    display_state(next);
+    printf("Player: %s (Round %d)\n", names[i%2], i+1);
     free(ns);
     ns = next;
+    display_battle_map(ns);
     i++;
   }
   if(ns != NULL){

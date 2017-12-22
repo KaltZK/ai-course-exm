@@ -3,14 +3,15 @@
 
 #define B_WIDTH   15
 #define B_HEIGHT  15
+
 #define C_INF     2048
 #define C_INF_RANGE     1024
 
 enum PosState{
-  C_EMPTY,
-  C_BLACK,
-  C_WHITE,
-  C_BLOCKED
+  C_EMPTY=0,
+  C_BLACK=1,
+  C_WHITE=2,
+  C_BLOCKED=3
 };
 
 enum Player{
@@ -33,6 +34,8 @@ struct GameOperation{
   int x, y;
   enum Player player;
 };
+
+int valid_pos(int x, int y);
 
 enum PosState get_state(struct GameState *s, int x, int y);
 void set_state(struct GameState *s, int x, int y, enum PosState val);

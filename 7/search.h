@@ -3,7 +3,7 @@
 
 #include "state_helpers.h"
 
-#define SEARCH_DEPTH 3
+#define SEARCH_DEPTH 4
 
 struct NeighborInfo{
   int x, y, neighbors;

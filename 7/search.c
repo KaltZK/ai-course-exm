@@ -12,8 +12,74 @@
 
 #define RESTRICT_ANS 1
 
-#define NEIGHBOR_DISTANCE 4
+#define NEIGHBOR_DISTANCE  2
 #define NEIGHBOR_THRESHOLD 3
+
+void _calc_search_weight(
+  struct GameState *state,
+  int pos_weight[B_WIDTH][B_HEIGHT],
+  int pos_ref_x[B_WIDTH][B_HEIGHT], 
+  int pos_ref_y[B_WIDTH][B_HEIGHT]
+){
+  int i, j, k, p, q, rp, rq, ri, rj, max_w;
+  const int weight_neighbors_dx[] = {-1,  0, -1,-1};
+  const int weight_neighbors_dy[] = { 0, -1, -1,+1};
+  for(i=0; i<B_WIDTH; i++){
+    for(j=0; j<B_WIDTH; j++){
+      if(get_state(state, i, j) != C_EMPTY){
+        max_w = 1;
+        ri = i;
+        rj = j;
+        for(k=0; k<4; k++){
+          p = i + weight_neighbors_dx[k];
+          q = i + weight_neighbors_dy[k];
+          if(!valid_pos(p, q) || get_state(state, p, q) != get_state(state, i, j)) continue;
+          rp = pos_ref_x[p][q];
+          rq = pos_ref_y[p][q];
+          if(pos_weight[rp][rq] + 1 > max_w){
+            max_w = pos_weight[rp][rq] + 1;
+            ri = rp;
+            rj = rq;
+          }
+        }
+        pos_ref_x[i][j] = ri;
+        pos_ref_y[i][j] = rj;
+        pos_weight[i][j] = -1;
+        pos_weight[ri][rj] = max_w;
+      }else{
+        pos_ref_x[i][j] = i;
+        pos_ref_y[i][j] = j;
+        pos_weight[i][j] = 0;
+      }
+    }
+  }
+}
+
+void _calc_neighbors(
+  struct GameState *state,
+  int *max_neighbor,
+  int neighbor_counter[B_WIDTH][B_HEIGHT],
+  int pos_weight[B_WIDTH][B_HEIGHT],
+  int pos_ref_x[B_WIDTH][B_HEIGHT], 
+  int pos_ref_y[B_WIDTH][B_HEIGHT]
+){
+  int i, j, p, q, ri, rj;
+  for(i=0; i<B_WIDTH; i++){
+    for(j=0; j<B_WIDTH; j++){
+      if(get_state(state, i, j) != C_EMPTY){
+        ri = pos_ref_x[i][j];
+        rj = pos_ref_y[i][j];
+        for(p=max(0, i-NEIGHBOR_DISTANCE); p<=min(B_WIDTH-1, i+NEIGHBOR_DISTANCE); p++){
+          for(q=max(0, i-NEIGHBOR_DISTANCE); q<=min(B_HEIGHT-1, i+NEIGHBOR_DISTANCE); q++){
+            neighbor_counter[p][q] += pos_weight[ri][rj];
+            // neighbor_counter[p][q]+= NEIGHBOR_DISTANCE - min(abs(p-i), abs(q-j));
+            *max_neighbor = max(*max_neighbor, neighbor_counter[p][q]);
+          }
+        }
+      }
+    }
+  }
+}
 
 struct GameState *search_by_player(
 struct GameState *state, 
@@ -23,13 +89,16 @@ int (*cmp)(int, int),
 enum PosState fill,
 struct Range (*range_update)(struct Range, int),
 struct GameState *(*next_search)(struct GameState *, struct Range rang, int)){
-  int i, j, p, q;
+  int i, j, p;
   int neighbor_ct = 0;
   struct NeighborInfo *neighbors;
   int m_score;
   int buf_size = 20;
   int max_neighbor = 0;
+  static int pos_ref_x[B_WIDTH][B_HEIGHT], pos_ref_y[B_WIDTH][B_HEIGHT];
+  static int pos_weight[B_WIDTH][B_HEIGHT];
   static int neighbor_counter[B_WIDTH][B_HEIGHT];
+  
   struct GameState *ns, *predict, *ans = NULL;
   assert(state != NULL);
   if(depth == 0){
@@ -42,19 +111,8 @@ struct GameState *(*next_search)(struct GameState *, struct Range rang, int)){
       return update_state(state, B_WIDTH / 2, B_HEIGHT / 2, fill);
     }
     memset(neighbor_counter, 0, sizeof(neighbor_counter));
-    for(i=0; i<B_WIDTH; i++){
-      for(j=0; j<B_WIDTH; j++){
-        if(get_state(state, i, j) != C_EMPTY){
-          for(p=max(0, i-NEIGHBOR_DISTANCE); p<min(B_WIDTH, i+NEIGHBOR_DISTANCE); p++){
-            for(q=max(0, i-NEIGHBOR_DISTANCE); q<min(B_HEIGHT, i+NEIGHBOR_DISTANCE); q++){
-              neighbor_counter[p][q]+= NEIGHBOR_DISTANCE - min(abs(p - i), abs( q-j ));
-              max_neighbor = max(max_neighbor, neighbor_counter[p][q]);
-            }
-          }
-        }
-      }
-    }
-    
+    _calc_search_weight(state, pos_weight, pos_ref_x, pos_ref_y);
+    _calc_neighbors(state, &max_neighbor, neighbor_counter, pos_weight, pos_ref_x, pos_ref_y);
     neighbors = malloc(sizeof(struct NeighborInfo) * buf_size);
     for(i=0; i<B_WIDTH; i++){
       for(j=0; j<B_HEIGHT; j++){
@@ -63,7 +121,7 @@ struct GameState *(*next_search)(struct GameState *, struct Range rang, int)){
         if(neighbor_counter[i][j] < min(max_neighbor, NEIGHBOR_THRESHOLD))
           continue;
         neighbors[neighbor_ct++] = neighbor_info(i, j, neighbor_counter[i][j]);
-        if(neighbor_ct > buf_size / 2){
+        if(neighbor_ct > buf_size * 2 / 3){
           buf_size *= 2;
           neighbors = realloc(neighbors, sizeof(struct NeighborInfo) * buf_size);
         }
@@ -173,6 +231,6 @@ struct NeighborInfo neighbor_info(int x, int y, int n){
 }
 
 int neighbor_info_cmp(const void *_a, const void *_b){
-  struct NeighborInfo *a = _a, *b = _b;
+  struct NeighborInfo *a = (struct NeighborInfo *)_a, *b = (struct NeighborInfo *)_b;
   return b->neighbors - a->neighbors;
 }
