@@ -4,8 +4,15 @@
 
 ### 使用Makefile编译
 
+
 ```bash
 make build
+```
+
+或交叉编译到Windows
+
+```bash
+make build_win32
 ```
 
 ### 直接编译
@@ -33,12 +40,14 @@ gcc -Wall -o main main.c state_helpers.c search.c
 声明状态的数据结构及处理状态的函数
 
 包括以下类型的声明:
+
 * GameState 状态
 * PosState 棋子类型
 * Player 玩家标记
 * Range 由alpha与beta构成的区间
 
 包括以下函数:
+
 * calc_weight 计算状态的权重
 * new_state 生成空状态
 * update_state 从已有状态放置棋子生成新状态
@@ -55,5 +64,6 @@ gcc -Wall -o main main.c state_helpers.c search.c
 #### search.h
 
 用于搜索的函数:
+
 * search\_by\_black 由黑棋搜索
 * search\_by\_white 由白棋搜索

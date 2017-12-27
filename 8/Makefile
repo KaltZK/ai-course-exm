@@ -1,6 +1,6 @@
 all: build run
 build:
-	gcc -Wall -o main main.c state_helpers.c search.c
+	g++ -Wall -o main main.cpp state.cpp
 run:
 	./main
 battle:
